@@ -8206,6 +8206,7 @@ pub const PackageManager = struct {
         patch,
         @"patch-commit",
         outdated,
+        audit,
 
         pub fn canGloballyInstallPackages(this: Subcommand) bool {
             return switch (this) {
@@ -8714,6 +8715,10 @@ pub const PackageManager = struct {
 
     pub fn patchCommit(ctx: Command.Context) !void {
         try updatePackageJSONAndInstallCatchError(ctx, .@"patch-commit");
+    }
+
+    pub fn audit(ctx: Command.Context) !void {
+        try updatePackageJSONAndInstallCatchError(ctx, .audit);
     }
 
     pub fn update(ctx: Command.Context) !void {
@@ -9400,6 +9405,38 @@ pub const PackageManager = struct {
                     Output.pretty("\n\n" ++ outro_text ++ "\n", .{});
                     Output.flush();
                 },
+                Subcommand.audit => {
+                    const intro_text =
+                        \\<b>Usage<r>: <b><green>bun audit<r> [<cyan>fix<r>|<cyan>signatures<r>] <cyan>[flags]<r>
+                        \\  Audit the dependencies listed in package.json
+                        \\
+                    ;
+                    const outro_text =
+                        \\<b>Examples:<r>
+                        \\  <d>Audit the dependencies for the current project<r>
+                        \\  <b><green>bun audit<r>
+                        \\
+                        \\  <d>Automatically fix vulnerabilities (when possible)<r>
+                        \\  <b><green>bun audit fix<r>
+                        \\
+                        \\  <d>Get an overview of security report signatures<r>
+                        \\  <b><green>bun audit signatures<r>
+                        \\
+                        \\Full documentation is available at <magenta>https://bun.sh/docs/cli/audit<r>
+                    ;
+                    Output.pretty("\n" ++ intro_text, .{});
+                    Output.flush();
+                    Output.pretty("\n<b>Subcommands:<r>", .{});
+                    Output.flush();
+                    Output.pretty("  <cyan>fix<r>         Automatically fix vulnerabilities when possible", .{});
+                    Output.pretty("  <cyan>signatures<r>  Get an overview of security report signatures", .{});
+                    Output.flush();
+                    Output.pretty("\n<b>Flags:<r>", .{});
+                    Output.flush();
+                    clap.simpleHelp(PackageManager.pm_params);
+                    Output.pretty("\n\n" ++ outro_text ++ "\n", .{});
+                    Output.flush();
+                },
                 .outdated => {
                     const intro_text =
                         \\<b>Usage<r>: <b><green>bun outdated<r> <cyan>[flags]<r>
@@ -9446,6 +9483,7 @@ pub const PackageManager = struct {
                 .patch => patch_params,
                 .@"patch-commit" => patch_commit_params,
                 .outdated => outdated_params,
+                .audit => install_params,
             };
 
             var diag = clap.Diagnostic{};
